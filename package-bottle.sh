@@ -18,5 +18,8 @@ for archive in /export/hmon--*.tar.gz; do
   mv "$archive" "/export/$destination"
 done
 brew uninstall hmon
-brew install -y /export/*.bottle*.tar.gz
+bottle_cache="$(brew --cache --force-bottle jtaizhang/hmon/hmon)"
+mkdir -p "$(dirname "$bottle_cache")"
+cp /export/*.bottle*.tar.gz "$bottle_cache"
+brew install -y -v --force-bottle jtaizhang/hmon/hmon
 brew test jtaizhang/hmon/hmon
