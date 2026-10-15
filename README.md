@@ -8,9 +8,16 @@ A native terminal system monitor for **HarmonyOS PC / HiShell**, inspired by
 
 ## 界面预览
 
-以下为 HarmonyOS 7.0 PC / HiShell 真机运行截图，裁剪仅保留 hmon 界面。
+以下为 HarmonyOS 7.0 PC / HiShell 真机运行截图，均使用小窗口，裁剪仅保留终端窗口。
 
-**总览 · 纯图表模式（v0.2.7）**
+**总览 · 进程列表（小窗口，v0.2.7）**
+
+系统历史图与当前身份可见的进程同屏展示；列表包含 PID、进程名、CPU 占用和 RSS 内存，
+图中按 RSS 从高到低排序。直接运行 `hmon`，按 `s` 切换排序，按 `/` 搜索进程。
+
+![hmon 总览与进程列表：CPU 和内存历史图，以及按 RSS 排序的进程 CPU、内存占用](docs/images/overview-processes.jpg)
+
+**总览 · 纯图表模式（小窗口，v0.2.7）**
 
 CPU 分组负载与频率、RAM / Swap、GPU 内存和温度历史同屏展示。
 运行 `hmon --compact` 进入此模式，按 `t` 可显示进程列表。
@@ -18,13 +25,24 @@ CPU 分组负载与频率、RAM / Swap、GPU 内存和温度历史同屏展示�
 ![hmon 总览：CPU 分组历史、RAM 和 Swap 占用、GPU 内存及温度](docs/images/overview.jpg)
 
 <details>
-<summary>展开查看 Hardware 页：频率与温度子图（v0.2.6）</summary>
+<summary>展开查看 CPU cores：逐逻辑核负载历史（小窗口，v0.2.7）</summary>
+
+每个逻辑核独立展示当前负载、历史变化、均值与峰值。图中为真机的 14 个逻辑核（Core 0–13）。
+运行 `hmon --view cores --compact` 可打开此视图，也可在运行时按 `v` 切换视图。
+
+![hmon CPU cores 页：14 个逻辑核的负载历史、当前值、均值与峰值](docs/images/cpu-cores.jpg)
+
+</details>
+
+<details>
+<summary>展开查看 Hardware 页：频率与温度子图（小窗口，v0.2.7）</summary>
 
 频率和温度分区显示，每个测点保留系统名称、当前值、历史、均值与峰值。
 运行 `hmon --view hardware --compact` 可打开此视图。
+小窗口中温度测点分页显示，按 `←` / `→` 查看其他测点；图中为第 1 页。
 带 `*` 的区域名称为推断；机壳、DDR 与供电区域温度不等于 CPU/GPU 芯片温度。
 
-![hmon Hardware 页：三组 CPU 频率和十个温度测点的独立历史图](docs/images/hardware.jpg)
+![hmon Hardware 小窗口：三组 CPU 频率与温度测点第 1 页的独立历史图](docs/images/hardware.jpg)
 
 </details>
 
