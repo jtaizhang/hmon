@@ -1,0 +1,9 @@
+/build/
+/.cache/
+/dist/
+*.log
+*.pem
+*.p12
+*.p7b
+*.keystore
+local.properties

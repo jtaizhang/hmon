@@ -1,0 +1,100 @@
+hmon 0.2.7 — HarmonyOS 7.0 PC 原生终端监控
+
+真机运行环境：鸿蒙 PC 的 HiShell，arm64，不是 Linux / Ubuntu 虚拟机。
+  chmod +x ~/hmon/hmon ~/hmon/hmon-core
+  ~/hmon/hmon
+
+无需 sudo，不依赖开发电脑、Node.js、网络服务。已由 SDK 自签名，签名后不要 strip。
+完整解压发行包后通过 hmon 启动；hmon-gpu-probe 是可选的诊断构建，不在默认包中。
+hmon 是 HiShell 启动脚本，hmon-core 是签名原生程序。不要单独启动 core，否则温度服务调用失败。
+启动器通过本地匿名管道请求温度，命令输出暂存于随机临时文件；正常退出或中断时删除。
+暂停时不请求采集；单次服务命令最多 1 秒，界面等待最多 350 ms，迟到结果丢弃。
+模拟器使用单独的 x86_64 构建，通过 HDC shell 执行 hmon-core --emulator，显示 EMULATOR 标记。
+
+新增功能：
+  0.2.6 Hardware 页分为“频率”和“温度”两大区域，各项作为子图展示。
+  频率图记录 MHz 历史，标明核心编号/数量、实测或请求频率，不将核心分组猜测为大小核。
+  温度显示中文区域名称，下一行保留系统原名；* 表示按名称推断，实际测点未确认。
+  后壳/前壳/边框、电池之外，system_h 的具体位置未知；供电区域不代表 CPU/GPU 核心温度。
+  空间不足时左右键翻页，t 隐藏进程以腾出图表空间；GPU 频率仅在读到数据时显示。
+  0.2.5 主页温度统一为 TEMPERATURE 面板；ddr_type、shell_back 为并排子图。
+  两个子图保留各自的当前温度、历史曲线与 avg/max；t 隐藏进程时一同展开。
+  0.2.4 主页采用上下两排图表 + 独立进程表的布局；上排 CPU 分组、RAM/Swap，
+  下排 GPU 内存、DDR 和机壳温度。窄窗口双列排列，较矮窗口优先保留主指标和进程。
+  CPU / RAM / Swap 曲线按负载采用绿、黄、红色；边框减淡，跟随终端主题。
+  t 隐藏进程后图表自动展开；GPU MEMORY 明确表示内存，不是 GPU 使用率。
+  0.2.3 接入 ThermalService 温度服务，电池、DDR、机壳等读数显示在总览和硬件视图。
+  硬件视图改为独立卡片；保留系统传感器原名，不把机壳/供电温度称作 CPU/GPU 核心温度。
+  RAM / Swap 统一显示已用 / 总量；图表随可用空间放大，减少无效占位和状态文字。
+  r 切换刷新间隔，s 循环排序；当前间隔与排序方式直接显示，操作后有即时反馈。
+  只在多页时显示左右方向键翻页提示；进程表仅保留名称、PID、CPU、内存。
+  CPU、RAM、Swap、GPU 内存的多行面积历史图，平均值与峰值。
+  按 v 切换总览、逐核心历史图、硬件；多页时左右方向键翻页，[ ] 也可用。
+  进程 CPU / RSS / PSS，c / m / s 排序；CPU 100% 表示占满一个逻辑核。
+  61×18 最小布局；--compact 或 t 隐藏进程；b 关闭历史图。
+  标准 ANSI 终端调色板，不设置背景；支持 NO_COLOR、--no-color 和 --ascii。
+
+按键：
+  q / Ctrl+C   退出并恢复终端
+  p / 空格     暂停、恢复；历史插入空缺并重建 CPU 基线
+  /            搜索名称或 PID；Enter 应用；Esc 清除
+  s            循环排序：内存 RSS → CPU → 内存 PSS，均为从高到低
+  c / m        按 CPU / 内存 RSS 排序的快捷方式
+  v            总览 → 逐核心 → 硬件能力与数据源
+  左 / 右      多页时上一页 / 下一页；[ / ] 保留兼容
+  t / b        显示或隐藏进程 / 历史图
+  j / k        进程向下、向上滚动；支持方向键
+  g            进程回到顶部
+  r            切换刷新间隔：0.5 / 1 / 2 / 5 秒
+  + 或 =       刷新间隔增加 0.5 秒（更新更慢）
+  - 或 _       刷新间隔减少 0.5 秒（更新更快）；范围 0.5–10 秒
+  0 / 1 / 2 / 5 直接选择 0.5 / 1 / 2 / 5 秒，避免远程键盘符号输入问题
+  ?            帮助
+
+示例：
+  ~/hmon/hmon --compact
+  ~/hmon/hmon --view cores
+  ~/hmon/hmon --pss --sort cpu --filter browser
+  ~/hmon/hmon --once --width 120 --height 36
+  ~/hmon/hmon --json --samples 10 > ~/hmon/samples.jsonl
+  ~/hmon/hmon --diagnose > ~/hmon/diagnostics.txt
+  ~/hmon/hmon-gpu-probe
+  ~/hmon/hmon --self-test
+
+历史保留最近 120 个样本；均值为有效样本算术平均，峰值为保留样本最大值。
+横轴由左至右；头部显示实际覆盖秒数。窄图合并相邻样本取平均，有缺测则留空。
+GPU 内存按历史峰值自动选择纵轴；CPU、RAM、Swap 固定 0–100%。
+不可读数值显示 -- / JSON null；真实 0 保留为 0。切换视图不清空历史。
+默认每 1 秒开始一次采集，包含采集耗时；超时不补采、不并发堆积。
+顶部 Refresh 显示当前间隔；暂停时不会采集，按 p 恢复。PSS 默认关闭。
+
+硬件接口与边界：
+  已接入标准 cpufreq policy 的核心组、组内活跃比例和 MHz；不猜测 E/P 核。
+  cpuinfo_cur_freq 为硬件读数；scaling_cur_freq 回退标记 req，不冒充实际频率。
+  标准 thermal zone 温度、hwmon 功耗/风扇及温度服务保留驱动标签和源路径。
+  2026-10-14 真机验证：CPU 三个 policy 分组（4/8/2 逻辑核）及 MHz 可读。
+  thermal 温度文件拒绝读取，hwmon 不存在；GPU/NPU 频率节点存在但拒绝读取。
+  温度服务已接入，文档规定温度默认为毫摄氏度。只转换已确认的温度类型；
+  风扇 fan_speed0=0、fan_speed1=65535 的单位和有效性未确认，仅保留于诊断/JSON rawValue。
+  不把 65535 显示成 RPM，不把未知字段转换成温度。服务超时或失败清空当前温度，历史留空。
+  GPU 负载使用官方采集器的 gpufreq/gpu_scene_aware/utilisation 路径；本机权限拒绝。
+  GamePerformance 探测补齐初始化后，hmon 自身身份返回 1010300002 鉴权失败。
+  hmon-gpu-probe 为独立限时诊断工具，普通监控不调用它，不注册或冒用其他应用身份。
+  本机 CPU/GPU 核心温度未在可读服务中导出，直接 thermal 节点权限拒绝。
+  HDC SmartPerf 的 GPU/cluster0 温度及 GPU 负载零值尚未确认为有效数据，不接入界面。
+  GPU / NPU 负载及逐核、CPU/GPU/NPU 功耗归属、进程 GPU/功耗、频率加权比率
+  仍缺少已验证的鸿蒙接口，不能宣称已完成。传感器功率轨不会擅自相加或归类。
+  GPU 内存来自 GpuTotalUsed，不是 GPU 使用率。不会把驱动的未知数值解释为负载。
+  只显示当前身份可见的进程，HiShell 本轮实测 49 个、11 个 PSS 可读，非全机列表。
+  RSS 包含共享页，不能直接求和；PSS 不可读时不会用 RSS 替代。
+
+模拟器：
+  本机 MateBook Pro 7.0 镜像没有 HiShell，通过 HDC shell 运行。
+  模拟器 shell 拒绝 /proc/stat；--emulator 使用 hidumper --cpuusage 的系统统计窗口
+  提供 CPU 总负载，并保留来源。核心列表可来自当前进程 CPU 亲和性，逐核负载仍为空。
+  进程 CPU、RSS/PSS、RAM、Swap 使用模拟器自身数据，不代表宿主机或真实 MateBook。
+  模拟器 SmartPerf 的 GPU/频率返回 0，功耗明确不支持，未接为有效指标。
+
+构建：scripts/Build-Hmon.ps1（arm64）；加 -Architecture x86_64 构建模拟器版。
+安装：按 README.md 解压发行包，或使用 Harmony Brew tap。
+源码：src/。原生采集和界面为 C++17，HiShell 脚本适配系统命令代理；不调用 macOS API。

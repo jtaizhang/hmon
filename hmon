@@ -1,0 +1,55 @@
+#!/usr/bin/sh
+# HiShell's system-command proxy must be started by HiShell, not a native executable's child.
+# HiShell's mksh coprocess uses anonymous pipes; its command proxy needs a temporary output file.
+# No HDC, network, or persistent service. The sample file is removed on exit.
+launcher=$0
+# Resolve Homebrew's bin -> Cellar/libexec symlinks before locating the core.
+case "$launcher" in */*) ;; *) launcher=$(command -v "$launcher") || exit 1;; esac
+links=0
+while [ -L "$launcher" ]; do
+    links=$((links + 1))
+    [ "$links" -le 40 ] || { echo 'hmon: launcher symlink loop' >&2; exit 1; }
+    directory=$(CDPATH= cd "$(dirname "$launcher")" && pwd) || exit 1
+    target=$(readlink "$launcher") || exit 1
+    case "$target" in /*) launcher=$target;; *) launcher=$directory/$target;; esac
+done
+base=$(CDPATH= cd "$(dirname "$launcher")" && pwd) || exit 1
+core="$base/hmon-core"
+if [ "$#" -eq 1 ]; then
+    case "$1" in --self-test|--version|--help|-h) exec "$core" "$@";; esac
+fi
+sample=$(mktemp "${TMPDIR:-/tmp}/hmon-thermal.XXXXXXXX") || exit 1
+worker=
+monitor=
+cleanup() {
+    trap - EXIT HUP INT TERM
+    exec 3>&- 4<&-
+    if [ -n "$monitor" ]; then kill "$monitor" 2>/dev/null; wait "$monitor" 2>/dev/null; fi
+    if [ -n "$worker" ]; then kill "$worker" 2>/dev/null; wait "$worker" 2>/dev/null; fi
+    rm -f "$sample"
+}
+trap cleanup EXIT
+trap 'exit 130' INT
+trap 'exit 143' TERM
+trap 'exit 129' HUP
+(
+    while IFS= read -r token; do
+        case "$token" in ''|*[!0-9]*) break;; esac
+        printf 'HMON BEGIN %s\n' "$token"
+        # The command proxy must not consume the request pipe as its own standard input.
+        timeout 1 hidumper -s ThermalService -a '-t' </dev/null >"$sample" 2>/dev/null
+        status=$?
+        cat "$sample"
+        printf '\nHMON END %s %s\n' "$token" "$status"
+    done
+) |&
+worker=$!
+exec 3>&p 4<&p 5<&0
+# Explicit redirection is required: mksh otherwise closes its coprocess FDs when executing native code.
+HMON_THERMAL_CHANNEL=1 "$core" "$@" 3>&3 4<&4 <&5 5<&- &
+monitor=$!
+exec 5<&-
+wait "$monitor"
+status=$?
+monitor=
+exit "$status"
