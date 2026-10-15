@@ -1,0 +1,30 @@
+name: Publish reviewed v0.2.7 assets
+on:
+  push:
+    branches: [release/v0.2.7]
+permissions:
+  contents: write
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify reviewed archives
+        working-directory: release-assets
+        run: sha256sum --check *.sha256
+      - name: Publish release
+        working-directory: release-assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -eu
+          if gh release view v0.2.7 >/dev/null 2>&1; then
+            echo "Release already exists; inspect it instead of replacing assets."
+            exit 1
+          fi
+          gh release create v0.2.7 *.tar.gz *.sha256 \
+            --target 289c26aa889a15f47385117835f60c78e26d5aea \
+            --title "hmon v0.2.7" --notes-file NOTES.md --draft
+          gh release edit v0.2.7 --draft=false --latest
