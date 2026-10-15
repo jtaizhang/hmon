@@ -110,6 +110,12 @@ make test
 Harmony Brew 的源码构建应在其官方 `ci-runner` 容器中进行，见
 [打包说明](docs/PACKAGING.md)。普通 Linux 上通过测试不等于通过鸿蒙真机验证。
 
+0.2.7 已通过官方容器的源码安装、`brew test`、`brew style` 和
+`brew audit --strict`，预编译 bottle 也通过重装测试。
+鸿蒙 7.0 PC 已完成 Brew 安装、70 项自检与 2,568 种布局检查，
+实际采集到 14 核 CPU 和 10 个温度测点。真机未安装编译工具时，
+`brew test` 的 Ruby 测试依赖可能无法构建；可直接运行 `hmon --self-test`。
+
 ## 许可与致谢
 
 [MIT](LICENSE)，Copyright 2026 Jiatai Zhang。
