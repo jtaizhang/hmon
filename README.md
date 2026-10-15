@@ -6,6 +6,28 @@ A native terminal system monitor for **HarmonyOS PC / HiShell**, inspired by
 鸿蒙 PC 上的终端监控工具：CPU 逐核负载、频率、内存、进程和可读温度的历史图。
 面向 HarmonyOS 7.0 arm64；直接在 HiShell 运行，无需连接开发电脑。
 
+## 界面预览
+
+以下为 HarmonyOS 7.0 PC / HiShell 真机运行截图，裁剪仅保留 hmon 界面。
+
+**总览 · 纯图表模式（v0.2.7）**
+
+CPU 分组负载与频率、RAM / Swap、GPU 内存和温度历史同屏展示。
+运行 `hmon --compact` 进入此模式，按 `t` 可显示进程列表。
+
+![hmon 总览：CPU 分组历史、RAM 和 Swap 占用、GPU 内存及温度](docs/images/overview.jpg)
+
+<details>
+<summary>展开查看 Hardware 页：频率与温度子图（v0.2.6）</summary>
+
+频率和温度分区显示，每个测点保留系统名称、当前值、历史、均值与峰值。
+运行 `hmon --view hardware --compact` 可打开此视图。
+带 `*` 的区域名称为推断；机壳、DDR 与供电区域温度不等于 CPU/GPU 芯片温度。
+
+![hmon Hardware 页：三组 CPU 频率和十个温度测点的独立历史图](docs/images/hardware.jpg)
+
+</details>
+
 ## 功能
 
 - CPU 总负载、逐逻辑核历史图、系统 cpufreq 分组和 MHz。
