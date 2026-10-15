@@ -1,0 +1,26 @@
+name: Build signed Harmony Brew bottle
+on:
+  push:
+    branches: [bottle/v0.2.7]
+permissions:
+  contents: write
+jobs:
+  bottle:
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker pull swr.cn-north-4.myhuaweicloud.com/harmonybrew/ci-runner:latest
+      - name: Package and verify in official container
+        run: |
+          mkdir output
+          docker run --name hmon-bottle \
+            -v "$GITHUB_WORKSPACE:/work:ro" \
+            -v "$GITHUB_WORKSPACE/output:/export" \
+            swr.cn-north-4.myhuaweicloud.com/harmonybrew/ci-runner:latest \
+            /bin/sh /work/package-bottle.sh
+      - name: Upload new bottle assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: gh release upload v0.2.7 output/*.tar.gz output/*.json output/hmon.rb
