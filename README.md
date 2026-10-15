@@ -20,7 +20,7 @@ A native terminal system monitor for **HarmonyOS PC / HiShell**, inspired by
 
 发行包面向 HarmonyOS PC 的 HiShell，不能在 Windows、macOS 或 Linux 虚拟机中直接运行。
 先按 [Harmony Brew 官方说明](https://harmonybrew.atomgit.com/) 配置包管理器。
-发布完成后可从维护者的 tap 安装：
+可从维护者的 tap 安装：
 
 ```sh
 brew tap jtaizhang/hmon https://github.com/jtaizhang/homebrew-hmon.git
