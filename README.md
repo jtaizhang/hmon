@@ -23,7 +23,7 @@ A native terminal system monitor for **HarmonyOS PC / HiShell**, inspired by
 发布完成后可从维护者的 tap 安装：
 
 ```sh
-brew tap jtaizhang/hmon
+brew tap jtaizhang/hmon https://github.com/jtaizhang/homebrew-hmon.git
 brew install jtaizhang/hmon/hmon
 hmon
 ```
